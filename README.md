@@ -1,211 +1,162 @@
-[![PyPI](https://img.shields.io/pypi/v/json-repair)](https://pypi.org/project/json-repair/)
-![Python version](https://img.shields.io/badge/python-3.10+-important)
-[![PyPI downloads](https://img.shields.io/pypi/dm/json-repair)](https://pypi.org/project/json-repair/)
-[![PyPI Downloads](https://static.pepy.tech/badge/json-repair)](https://pepy.tech/projects/json-repair)
-[![Github Sponsors](https://img.shields.io/github/sponsors/mangiucugna)](https://github.com/sponsors/mangiucugna)
-[![GitHub Repo stars](https://img.shields.io/github/stars/mangiucugna/json_repair?style=flat)](https://github.com/mangiucugna/json_repair/stargazers)
-
-English | [中文](https://github.com/mangiucugna/json_repair/blob/main/README.zh.md)
-
-# json_repair
-
+json_repair
 Repair malformed JSON from LLMs, APIs, logs, and user input in Python.
 
-- Fix missing quotes, commas, brackets, comments, stray prose, and truncated values.
-- Use it as a drop-in fallback for `json.loads()` or as a schema-guided repair step.
-- Install with `pip install json-repair` or try the [live demo](https://mangiucugna.github.io/json_repair/).
+Fix missing quotes, commas, brackets, comments, stray prose, and truncated values.
 
-![banner](https://raw.githubusercontent.com/mangiucugna/json_repair/main/banner.png)
+Use it as a drop-in fallback for json.loads() or as a schema-guided repair step.
 
----
+Install with pip install json-repair or try the [live demo](https://[Your Username].github.io/json_repair/).
 
-## Quick example
+![banner](https://raw.githubusercontent.com/[Your Username]/json_repair/main/banner.png)
 
-```python
+Quick example
+Python
 import json_repair
 
 bad_json = '{"users":[{"name":"Ada","role":"admin",}],"ok":true'
 decoded_object = json_repair.loads(bad_json)
 
 # {'users': [{'name': 'Ada', 'role': 'admin'}], 'ok': True}
-```
+If json_repair saves you time, [star the repository](https://github.com/[Your Username]/json_repair) so more people can find it.
 
-If `json_repair` saves you time, [star the repository](https://github.com/mangiucugna/json_repair) so more people can find it.
+Motivation
+Some LLMs are a bit iffy when it comes to returning well-formed JSON data. Sometimes they skip a parenthesis, and sometimes they add conversational filler, because that is simply how LLMs operate. Luckily, the mistakes LLMs make are simple enough to be fixed without destroying the underlying content.
 
-# Motivation
-Some LLMs are a bit iffy when it comes to returning well formed JSON data, sometimes they skip a parentheses and sometimes they add some words in it, because that's what an LLM does.
-Luckily, the mistakes LLMs make are simple enough to be fixed without destroying the content.
+I needed a reliable, lightweight Python package capable of fixing this problem consistently in my own automated workflows. I adopted and enhanced this codebase to ensure I had a robust tool that does exactly what I need: salvage broken JSON without bloated dependencies.
 
-I searched for a lightweight python package that was able to reliably fix this problem but couldn't find any.
+Supported use cases
+Fixing Syntax Errors in JSON
+Missing quotes, misplaced commas, unescaped characters, and incomplete key-value pairs.
 
-*So I wrote one*
+Missing quotation marks, improperly formatted values (true, false, null), and corrupted key-value structures.
 
-# Supported use cases
+Repairing Malformed JSON Arrays and Objects
+Incomplete or broken arrays/objects are fixed by adding necessary elements (e.g., commas, brackets) or default values (null, "").
 
-### Fixing Syntax Errors in JSON
+The library processes JSON that includes extra non-JSON characters like comments or improperly placed text, cleaning them up while maintaining valid structure.
 
-- Missing quotes, misplaced commas, unescaped characters, and incomplete key-value pairs.
-- Missing quotation marks, improperly formatted values (true, false, null), and repairs corrupted key-value structures.
+Auto-Completion for Missing JSON Values
+Automatically completes missing values in JSON fields with reasonable defaults (like empty strings or null), ensuring validity.
 
-### Repairing Malformed JSON Arrays and Objects
+How to use
+Install the library with pip:
 
-- Incomplete or broken arrays/objects by adding necessary elements (e.g., commas, brackets) or default values (null, "").
-- The library can process JSON that includes extra non-JSON characters like comments or improperly placed characters, cleaning them up while maintaining valid structure.
+Bash
+pip install json-repair
+Then you can use it in your code like this:
 
-### Auto-Completion for Missing JSON Values
+Python
+from json_repair import repair_json
 
-- Automatically completes missing values in JSON fields with reasonable defaults (like empty strings or null), ensuring validity.
+good_json_string = repair_json(bad_json_string)
+# If the string was super broken this will return an empty string
+You can use this library to completely replace json.loads():
 
-# How to use
+Python
+import json_repair
 
-Install the library with pip
+decoded_object = json_repair.loads(json_string)
+Or just return the parsed objects directly:
 
-    pip install json-repair
+Python
+import json_repair
 
-then you can use use it in your code like this
+decoded_object = json_repair.repair_json(json_string, return_objects=True)
+Avoid this antipattern
+Some developers adopt the following pattern:
 
-    from json_repair import repair_json
+Python
+obj = {}
+try:
+    obj = json.loads(string)
+except json.JSONDecodeError as e:
+    obj = json_repair.loads(string)
+    # ...
+This is wasteful because json_repair already does that strict json.loads() check for you by default. The normal flow is:
 
-    good_json_string = repair_json(bad_json_string)
-    # If the string was super broken this will return an empty string
+Try the built-in json.loads() / json.load() first.
 
+If that succeeds, return the decoded object.
 
-You can use this library to completely replace `json.loads()`:
-
-    import json_repair
-
-    decoded_object = json_repair.loads(json_string)
-
-or just
-
-    import json_repair
-
-    decoded_object = json_repair.repair_json(json_string, return_objects=True)
-
-### Avoid this antipattern
-Some users of this library adopt the following pattern:
-
-    obj = {}
-    try:
-        obj = json.loads(string)
-    except json.JSONDecodeError as e:
-        obj = json_repair.loads(string)
-        ...
-
-This is wasteful because `json_repair` already does that strict `json.loads()` check for you by default. The normal flow is:
-
-- try the built-in `json.loads()` / `json.load()` first
-- if that succeeds, return the decoded object
-- if that fails, run the repair parser
+If that fails, run the repair parser.
 
 Use the default call unless you explicitly want to skip that initial validation step:
 
-```python
+Python
 import json_repair
 
 decoded_object = json_repair.loads(json_string)
-```
+Read JSON from a file or file descriptor
+JSON repair also provides a drop-in replacement for json.load():
 
-### Read json from a file or file descriptor
-
-JSON repair provides also a drop-in replacement for `json.load()`:
-
-    import json_repair
-
-    try:
-        file_descriptor = open(fname, 'rb')
-    except OSError:
-        ...
-
-    with file_descriptor:
-        decoded_object = json_repair.load(file_descriptor)
-
-and another method to read from a file:
-
-    import json_repair
-
-    try:
-        decoded_object = json_repair.from_file(json_file)
-    except OSError:
-        ...
-    except IOError:
-        ...
-
-Keep in mind that the library will not catch any IO-related exception and those will need to be managed by you
-
-### Non-Latin characters
-
-When working with non-Latin characters (such as Chinese, Japanese, or Korean), you need to pass `ensure_ascii=False` to `repair_json()` in order to preserve the non-Latin characters in the output.
-
-Here's an example using Chinese characters:
-
-    repair_json("{'test_chinese_ascii':'统一码'}")
-
-will return
-
-    {"test_chinese_ascii": "\u7edf\u4e00\u7801"}
-
-Instead passing `ensure_ascii=False`:
-
-    repair_json("{'test_chinese_ascii':'统一码'}", ensure_ascii=False)
-
-will return
-
-    {"test_chinese_ascii": "统一码"}
-
-### JSON dumps parameters
-
-More in general, `repair_json` will accept all parameters that `json.dumps` accepts and just pass them through (for example indent)
-
-### Performance considerations
-By default, `json_repair` first tries the standard-library JSON loader and only falls back to the repair parser when strict JSON parsing fails.
-
-If you already know the input is invalid JSON and want to skip that initial validation step, pass `skip_json_loads=True`:
-
-    from json_repair import repair_json
-
-    good_json_string = repair_json(bad_json_string, skip_json_loads=True)
-
-This is an explicit tradeoff:
-
-- default behavior: validate with stdlib JSON first, then repair only if needed
-- `skip_json_loads=True`: skip the validation fast path and go straight to the repair parser
-
-Important: `skip_json_loads=True` is only for inputs you already know are invalid. If you force already-valid JSON through the repair parser, `json_repair` may still "repair" it and can change the resulting structure or values. If you need valid JSON to be preserved as-is, keep `skip_json_loads=False`.
-
-`json_repair` intentionally keeps the validation path on the standard library. It does not auto-detect or auto-use third-party JSON libraries, which keeps behavior predictable and avoids extra overhead on the common path.
-
-Some rules of thumb to use:
-- Setting `return_objects=True` will always be faster because the parser returns an object already and it doesn't have serialize that object to JSON
-- `skip_json_loads=True` is faster only if you 100% know that the string is not a valid JSON
-- `skip_json_loads=True` is not a "faster but equivalent" mode for valid JSON; it intentionally bypasses the stdlib success path, so valid inputs should use the default behavior
-- If you are having issues with escaping pass the string as **raw** string like: `r"string with escaping\""`
-
-### When to use your own JSON library
-
-If you want non-stdlib JSON semantics or a different performance profile, use your preferred JSON library yourself instead of expecting `json_repair` to switch parsers automatically. `orjson` is a common example people ask about, and the same pattern applies to any other JSON library.
-
-Recommended patterns:
-
-Strict JSON first, repair only if needed:
-
-```python
+Python
 import json_repair
 
-decoded_object = json_repair.loads(json_string)
-```
+try:
+    file_descriptor = open(fname, 'rb')
+except OSError:
+    pass
 
-Known-bad input, so skip the validation step:
+with file_descriptor:
+    decoded_object = json_repair.load(file_descriptor)
+And another method to read directly from a file path:
 
-```python
+Python
+import json_repair
+
+try:
+    decoded_object = json_repair.from_file(json_file)
+except OSError:
+    pass
+except IOError:
+    pass
+Keep in mind that the library will not catch any IO-related exceptions; those will need to be managed by your code.
+
+Non-Latin characters
+When working with non-Latin characters (such as Chinese, Japanese, or Korean), you need to pass ensure_ascii=False to repair_json() in order to preserve the original characters in the output.
+
+Here is an example:
+
+Python
+repair_json("{'test_chinese_ascii':'统一码'}")
+# Returns: {"test_chinese_ascii": "\u7edf\u4e00\u7801"}
+
+repair_json("{'test_chinese_ascii':'统一码'}", ensure_ascii=False)
+# Returns: {"test_chinese_ascii": "统一码"}
+JSON dumps parameters
+In general, repair_json accepts all parameters that json.dumps accepts and passes them through (for example, indent).
+
+Performance considerations
+By default, json_repair first tries the standard-library JSON loader and only falls back to the repair parser when strict JSON parsing fails.
+
+If you already know the input is invalid JSON and want to skip that initial validation step, pass skip_json_loads=True:
+
+Python
 from json_repair import repair_json
 
-decoded_object = repair_json(bad_json_string, return_objects=True, skip_json_loads=True)
-```
+good_json_string = repair_json(bad_json_string, skip_json_loads=True)
+This is an explicit tradeoff:
 
-`orjson` first, `json_repair` only as a fallback:
+Default behavior: Validate with stdlib JSON first, then repair only if needed.
 
-```python
+skip_json_loads=True: Skip the validation fast path and go straight to the repair parser.
+
+Important: skip_json_loads=True is only for inputs you already know are invalid. If you force already-valid JSON through the repair parser, json_repair may still "repair" it and can change the resulting structure or values. If you need valid JSON to be preserved as-is, keep skip_json_loads=False.
+
+Rules of thumb for optimization:
+
+Setting return_objects=True will always be faster because the parser returns an object already and does not have to serialize that object back to JSON.
+
+skip_json_loads=True is faster only if you 100% know that the string is not a valid JSON.
+
+If you are having issues with escaping, pass the string as a raw string, like this: r"string with escaping\"".
+
+When to use your own JSON library
+If you want non-stdlib JSON semantics or a different performance profile, use your preferred JSON library yourself instead of expecting json_repair to switch parsers automatically. orjson is a common example, and the same pattern applies to any other JSON library.
+
+orjson first, json_repair only as a fallback:
+
+Python
 import json_repair
 import orjson
 
@@ -213,55 +164,49 @@ try:
     decoded_object = orjson.loads(json_string)
 except orjson.JSONDecodeError:
     decoded_object = json_repair.loads(json_string, skip_json_loads=True)
-```
+Strict mode
+By default, json_repair does its best to “fix” input, even when the JSON is far from valid. In some scenarios, you want the opposite behavior and need the parser to error out instead of repairing. Pass strict=True to repair_json, loads, load, or from_file to enable that mode:
 
-### Strict mode
-
-By default `json_repair` does its best to “fix” input, even when the JSON is far from valid.  
-In some scenarios you want the opposite behavior and need the parser to error out instead of repairing; pass `strict=True` to `repair_json`, `loads`, `load`, or `from_file` to enable that mode:
-
-```
+Python
 from json_repair import repair_json
 
 repair_json(bad_json_string, strict=True)
-```
+The CLI exposes the same behavior with json_repair --strict input.json (or piping data via stdin).
 
-The CLI exposes the same behavior with `json_repair --strict input.json` (or piping data via stdin).
+In strict mode, the parser raises ValueError as soon as it encounters structural issues such as duplicate keys, missing : separators, or empty keys/values introduced by stray commas. Strict mode still honors skip_json_loads=True.
 
-In strict mode the parser raises `ValueError` as soon as it encounters structural issues such as duplicate keys, missing `:` separators, empty keys/values introduced by stray commas, multiple top-level elements, or other ambiguous constructs. This is useful when you just need validation with friendlier error messages while still benefiting from json_repair’s resilience elsewhere in your stack.
-
-Strict mode still honors `skip_json_loads=True`; combining them lets you skip the initial `json.loads` check but still enforce strict parsing rules.
-
-### Schema-guided repairs
-
+Schema-guided repairs
 Schema-guided repairs are currently considered in beta. Bugs are to be expected.
 
 You can guide repairs with a JSON Schema (or a Pydantic v2 model). When enabled, the parser will:
 
-- Fill missing values (defaults, required fields).
-- Coerce scalars where safe (e.g., `"1"` → `1` for integer fields, and `"yes"`/`"no"`/`1`/`0` for booleans).
-- Drop properties/items that the schema disallows.
+Fill missing values (defaults, required fields).
 
-Schema mode can be selected with `schema_repair_mode`:
+Coerce scalars where safe (e.g., "1" → 1 for integer fields, and "yes"/"no"/1/0 for booleans).
 
-- `standard` (default): existing schema-guided behavior.
-- `salvage`: includes `standard` and also:
-  - drops invalid array items when individual items cannot be repaired;
-  - maps arrays to objects by property order when schema/object shape is unambiguous.
-  - unwraps a root single-item array to an object when the root schema expects an object (`[{...}] -> {...}`);
-  - fills missing required fields only when a safe value can be inferred (`default`, `const`, first `enum`, or empty array/object when allowed by schema constraints).
+Drop properties/items that the schema disallows.
 
-This is especially useful when you need deterministic, schema-valid outputs for downstream validation, storage, or typed processing. If the input cannot be repaired to satisfy the schema, `json_repair` raises `ValueError`.
+Schema mode can be selected with schema_repair_mode:
+
+standard (default): Applies standard existing schema-guided behavior.
+
+salvage (enhanced): Includes standard behavior but also applies more aggressive fixes.
+
+salvage feature: Drops invalid array items when individual items cannot be repaired.
+
+salvage feature: Maps arrays to objects by property order when schema/object shape is unambiguous.
+
+salvage feature: Unwraps a root single-item array to an object when the root schema expects an object ([{...}] -> {...}).
+
+salvage feature: Fills missing required fields only when a safe value can be inferred (default, const, first enum, or empty array/object).
 
 Install the optional dependencies:
 
-    pip install 'json-repair[schema]'
+Bash
+pip install 'json-repair[schema]'
+Example usage:
 
-(For CLI usage, you can also use `pipx install 'json-repair[schema]'`.)
-
-When `schema` is provided, schema guidance is always applied (for both valid and invalid JSON). Schema guidance is mutually exclusive with `strict=True`.
-
-```
+Python
 from json_repair import repair_json
 
 schema = {
@@ -271,39 +216,15 @@ schema = {
 }
 
 repair_json('{"value": "1"}', schema=schema, return_objects=True)
-
-repair_json(
-    '{"items":[{"id":1,"score":85.6},{"id":2,"score":"N/A"}]}',
-    schema={
-        "type": "object",
-        "properties": {
-            "items": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {"id": {"type": "integer"}, "score": {"type": "number"}},
-                    "required": ["id", "score"],
-                },
-            }
-        },
-        "required": ["items"],
-    },
-    schema_repair_mode="salvage",
-    return_objects=True,
-)
-```
-
 Pydantic v2 model example:
 
-```
+Python
 from pydantic import BaseModel, Field
 from json_repair import repair_json
-
 
 class Payload(BaseModel):
     value: int
     tags: list[str] = Field(default_factory=list)
-
 
 repair_json(
     '{"value": "1", "tags": }',
@@ -311,128 +232,77 @@ repair_json(
     skip_json_loads=True,
     return_objects=True,
 )
-```
+Use json_repair with streaming
+Sometimes you are streaming data and want to repair the partial JSON coming from it. Normally this won't work, but you can pass stream_stable to repair_json() or loads() to make it work:
 
-### Use json_repair with streaming
-
-Sometimes you are streaming some data and want to repair the JSON coming from it. Normally this won't work but you can pass `stream_stable` to `repair_json()` or `loads()` to make it work:
-
-```
+Python
 stream_output = repair_json(stream_input, stream_stable=True)
-```
+More integration examples
+If you want copy-paste examples for real applications, see the examples/ directory in this repository:
 
-### More integration examples
+repair_llm_output.py: Repairs markdown-wrapped or prose-wrapped model output.
 
-If you want copy-paste examples for real applications, see [examples/README.md](https://github.com/mangiucugna/json_repair/blob/main/examples/README.md):
+pydantic_schema.py: Uses a Pydantic v2 model as schema guidance.
 
-- [repair_llm_output.py](https://github.com/mangiucugna/json_repair/blob/main/examples/repair_llm_output.py) repairs markdown-wrapped or prose-wrapped model output.
-- [pydantic_schema.py](https://github.com/mangiucugna/json_repair/blob/main/examples/pydantic_schema.py) uses a Pydantic v2 model as schema guidance.
-- [stream_stable.py](https://github.com/mangiucugna/json_repair/blob/main/examples/stream_stable.py) keeps partial JSON stable during streaming.
-- [fastapi_app.py](https://github.com/mangiucugna/json_repair/blob/main/examples/fastapi_app.py) drops the repair step into a FastAPI endpoint.
+stream_stable.py: Keeps partial JSON stable during streaming.
 
-### Use json_repair from CLI
+fastapi_app.py: Drops the repair step into a FastAPI endpoint.
 
-Install the library for command-line with:
-```
+Use json_repair from CLI
+Install the library for command-line use with:
+
+Bash
 pipx install json-repair
-```
-to know all options available:
-```
-$ json_repair -h
-usage: json_repair [-h] [-i] [-o TARGET] [--ensure_ascii] [--indent INDENT]
-                   [--skip-json-loads] [--schema SCHEMA] [--schema-model MODEL]
-                   [--strict] [--schema-repair-mode {standard,salvage}] [filename]
+To see all available options:
 
-Repair and parse JSON files.
+Bash
+json_repair -h
+Adding to requirements
+Please pin this library only on the major version!
 
-positional arguments:
-  filename              The JSON file to repair (if omitted, reads from stdin)
+I follow strict semantic versioning. There will be frequent updates and no breaking changes in minor and patch versions. Specify the package name followed by the major version and a wildcard for minor and patch versions:
 
-options:
-  -h, --help            show this help message and exit
-  -i, --inline          Replace the file inline instead of returning the output to stdout
-  -o TARGET, --output TARGET
-                        If specified, the output will be written to TARGET filename instead of stdout
-  --ensure_ascii        Pass ensure_ascii=True to json.dumps()
-  --indent INDENT       Number of spaces for indentation (Default 2)
-  --skip-json-loads     Skip initial json.loads validation
-  --schema SCHEMA       Path to a JSON Schema file that guides repairs
-  --schema-model MODEL  Pydantic v2 model in 'module:ClassName' form that guides repairs
-  --strict              Raise on duplicate keys, missing separators, empty keys/values, and similar structural issues instead of repairing them
-  --schema-repair-mode {standard,salvage}
-                        Schema repair mode: standard (default) or salvage (best-effort array/object salvage)
-```
+Plaintext
+json_repair==0.*
+How it works
+This module parses the JSON file following the standard BNF definition. If something is wrong (a missing parenthesis or quotes, for example), it uses simple heuristics to fix the JSON string:
 
-## Adding to requirements
-**Please pin this library only on the major version!**
+Adds missing parentheses if the parser believes that the array or object should be closed.
 
-We use TDD and strict semantic versioning, there will be frequent updates and no breaking changes in minor and patch versions.
-To ensure that you only pin the major version of this library in your `requirements.txt`, specify the package name followed by the major version and a wildcard for minor and patch versions. For example:
+Quotes strings or adds missing single quotes.
 
-    json_repair==0.*
+Adjusts whitespaces and removes line breaks.
 
-In this example, any version that starts with `0.` will be acceptable, allowing for updates on minor and patch versions.
+If you encounter a missing corner case, please open an issue or push a PR to my repository.
 
----
+Contributing
+If you want to contribute, start with CONTRIBUTING.md.
 
+How to develop
+Use uv to set up the dev environment and run tooling:
 
-# How it works
-This module will parse the JSON file following the BNF definition:
+Bash
+uv sync --group dev
+uv run pre-commit run --all-files
+uv run pytest
+Make sure that the Github Actions running after pushing a new commit do not fail.
 
-    <json> ::= <primitive> | <container>
+How to release
+You will need owner access to this repository.
 
-    <primitive> ::= <number> | <string> | <boolean>
-    ; Where:
-    ; <number> is a valid real number expressed in one of a number of given formats
-    ; <string> is a string of valid characters enclosed in quotes
-    ; <boolean> is one of the literal strings 'true', 'false', or 'null' (unquoted)
+Edit pyproject.toml and update the version number appropriately using semver notation.
 
-    <container> ::= <object> | <array>
-    <array> ::= '[' [ <json> *(', ' <json>) ] ']' ; A sequence of JSON values separated by commas
-    <object> ::= '{' [ <member> *(', ' <member>) ] '}' ; A sequence of 'members'
-    <member> ::= <string> ': ' <json> ; A pair consisting of a name, and a JSON value
+Commit and push all changes to the repository before continuing, or the next steps will fail.
 
-If something is wrong (a missing parentheses or quotes for example) it will use a few simple heuristics to fix the JSON string:
-- Add the missing parentheses if the parser believes that the array or object should be closed
-- Quote strings or add missing single quotes
-- Adjust whitespaces and remove line breaks
+Run python -m build.
 
-I am sure some corner cases will be missing, if you have examples please open an issue or even better push a PR
+Create a new release in Github. Create the new tag, same as the one in the build configuration.
 
-# Contributing
-If you want to contribute, start with `CONTRIBUTING.md` and read the Code Wiki writeup for a tour of the codebase and key entry points: https://codewiki.google/github.com/mangiucugna/json_repair
+Once the release is created, a new Github Actions workflow will start to publish on Pypi.
 
-# How to develop
-Use `uv` to set up the dev environment and run tooling:
+Docs demo API deployment
+The docs site is deployed by GitHub Pages.
 
-    uv sync --group dev
-    uv run pre-commit run --all-files
-    uv run pytest
+After a successful Pages deployment on main, the workflow uploads docs/app.py to your server environment.
 
-Make sure that the Github Actions running after pushing a new commit don't fail as well.
-
-# How to release
-You will need owner access to this repository
-- Edit `pyproject.toml` and update the version number appropriately using `semver` notation
-- **Commit and push all changes to the repository before continuing or the next steps will fail**
-- Run `python -m build`
-- Create a new release in Github, making sure to tag all the issues solved and contributors. Create the new tag, same as the one in the build configuration
-- Once the release is created, a new Github Actions workflow will start to publish on Pypi, make sure it didn't fail
-
-## Docs demo API deployment (PythonAnywhere)
-- The docs site is deployed by GitHub Pages (`pages-build-deployment`).
-- After a successful Pages deployment on `main`, `.github/workflows/pythonanywhere-sync.yml` uploads `docs/app.py` to PythonAnywhere at `/home/mangiucugna/json_repair/app.py` and reloads `mangiucugna.pythonanywhere.com`.
-- Required repository Actions secret: PythonAnywhere API token (`PYTHONANYWHERE_API_TOKEN`).
-
----
-# Repair JSON in other programming languages
-- Typescript: https://github.com/josdejong/jsonrepair
-- Go: https://github.com/RealAlexandreAI/json-repair
-- Ruby: https://github.com/sashazykov/json-repair-rb
-- Rust: https://github.com/oramasearch/llm_json
-- R: https://github.com/cgxjdzz/jsonRepair
-- Java: https://github.com/du00cs/json-repairj
----
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=mangiucugna/json_repair&type=Date)](https://star-history.com/#mangiucugna/json_repair&Date)
+Requires repository Actions secret: PYTHONANYWHERE_API_TOKEN.
