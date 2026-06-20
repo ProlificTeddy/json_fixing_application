@@ -393,21 +393,7 @@ To ensure that you only pin the major version of this library in your `requireme
 In this example, any version that starts with `0.` will be acceptable, allowing for updates on minor and patch versions.
 
 ---
-# How to cite
-If you are using this library in your academic work (as I know many folks are) please find the BibTex here:
 
-    @software{Baccianella_JSON_Repair_-_2025,
-        author  = "Stefano {Baccianella}",
-        month   = "feb",
-        title   = "JSON Repair - A python module to repair invalid JSON, commonly used to parse the output of LLMs",
-        url     = "https://github.com/mangiucugna/json_repair",
-        version = "0.39.1",
-        year    = 2025
-    }
-
-Thank you for citing my work and please send me a link to the paper if you can!
-
----
 
 # How it works
 This module will parse the JSON file following the BNF definition:
