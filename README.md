@@ -32,25 +32,6 @@ decoded_object = json_repair.loads(bad_json)
 
 If `json_repair` saves you time, [star the repository](https://github.com/mangiucugna/json_repair) so more people can find it.
 
----
-
-# Demo
-If you are unsure whether this library will fix your specific problem, or simply want your JSON validated online, try one of these:
-
-- Live demo: https://mangiucugna.github.io/json_repair/
-- Audio overview: [NotebookLM introduction](https://notebooklm.google.com/notebook/05312bb3-f6f3-4e49-a99b-bd51db64520b/audio)
-
-## Premium sponsors
-- [Icana-AI](https://github.com/Icana-AI) Makers of CallCoach, the world's best Call Centre AI Coach. Visit [https://www.icana.ai/](https://www.icana.ai/)
-- [mjharte](https://github.com/mjharte)
-
----
-
-# Think about sponsoring this library!
-This library is free for everyone and is maintained as a side project, so if it helps your work, consider becoming a sponsor: https://github.com/sponsors/mangiucugna
-
----
-
 # Motivation
 Some LLMs are a bit iffy when it comes to returning well formed JSON data, sometimes they skip a parentheses and sometimes they add some words in it, because that's what an LLM does.
 Luckily, the mistakes LLMs make are simple enough to be fixed without destroying the content.
