@@ -1,13 +1,4 @@
-json_repair
-Repair malformed JSON from LLMs, APIs, logs, and user input in Python.
 
-Fix missing quotes, commas, brackets, comments, stray prose, and truncated values.
-
-Use it as a drop-in fallback for json.loads() or as a schema-guided repair step.
-
-Install with pip install json-repair or try the [live demo](https://[Your Username].github.io/json_repair/).
-
-![banner](https://raw.githubusercontent.com/[Your Username]/json_repair/main/banner.png)
 
 Quick example
 Python
