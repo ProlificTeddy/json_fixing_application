@@ -1,0 +1,15 @@
+.benchmarks
+.DS_Store
+.venv
+.vscode
+__pycache__
+.gitattributes
+.pytest_cache
+.coverage
+.mypy_cache
+build/
+dist/
+src/json_repair.egg-info/
+htmlcov/
+.ruff_cache
+.cache
